@@ -31,6 +31,34 @@ namespace remember {
 		((std::cout << std::get<values>(tuple) << ' '), ...);
 	}
 
+	// second example ----------------------
+	template<class Tuple, size_t N>
+	class tupleprinter {
+	public:
+		static void print_tuple(const Tuple& tuple_) {
+			tupleprinter<Tuple, N - 1>::print_tuple(tuple_);
+
+			std::cout << std::get<N>(tuple_) << ' ';
+		}
+	};
+
+	template<class Tuple>
+	class tupleprinter<Tuple, 0> {
+	public:
+		static void print_tuple(const Tuple& tuple_) {
+			std::cout << std::get<0>(tuple_) << ' ';
+		}
+	};
+
+	template<class... args>
+	void print(const std::tuple<args...>& tuple_) {
+		constexpr size_t tuple_size = std::tuple_size_v<std::tuple<args...>>;
+		constexpr size_t tuple_index = tuple_size - 1;
+
+		tupleprinter<std::tuple<args...>, tuple_index>::print_tuple(tuple_);
+	}
+	// second example ----------------------
+
 	// 4 ------------------------------------------------------ 4
 	// Print std::integer_sequence, std::index_sequence
 	template<typename Type, Type... values>
@@ -65,17 +93,23 @@ int main() {
 	// 3 ------------------------------------------------------ 3
 	std::cout << "\n\n3 ------------------------------------------------------ 3\n";
 	std::tuple<std::string, double, std::string, int, float> tuple{ "begine", 66.99, "middle", 563, 2.5 };
+
+	// 3.1
 	constexpr size_t size = std::tuple_size_v<decltype(tuple)>;
+
+	remember::print_tuple(tuple, std::make_index_sequence<size>());
+	std::cout << "\n\n";
+
+	// 3.2
 	auto lambda = [](auto&&... args) {
 		((std::cout << args << ' '), ...);
 		};
 
-	remember::print_tuple(tuple, std::make_index_sequence<size>());
-
+	std::apply(lambda, tuple);
 	std::cout << "\n\n";
 
-	std::apply(lambda, tuple);
-
+	// 3.3
+	remember::print(tuple);
 
 	// 4 ------------------------------------------------------ 4
 	std::cout << "\n\n4 ------------------------------------------------------ 4\n";
